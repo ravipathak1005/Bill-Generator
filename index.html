@@ -4,365 +4,587 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Offline Bill Generator</title>
- <link rel="manifest" href="manifest.json">
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#08a8d8">
 <link rel="icon" href="icon-192.png">
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#eef2f5;color:#222}
-.app{max-width:1250px;margin:auto;padding:18px}.top{margin-bottom:15px}
-h1{margin:0;font-size:24px}.sub{color:#666;font-size:13px}
-.panel{background:#fff;border-radius:10px;padding:16px;margin-bottom:15px;box-shadow:0 2px 8px #0001}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.field label{display:block;font-size:12px;font-weight:bold;margin-bottom:4px}
-input,select,textarea{width:100%;padding:8px;border:1px solid #ccd3da;border-radius:5px;font:inherit}
-input:disabled,select:disabled{background:#f2f2f2;color:#999}
-textarea{resize:vertical}.wide{grid-column:span 2}
-button{border:0;border-radius:6px;padding:9px 14px;cursor:pointer;font-weight:bold}
-.primary{background:#09a8d8;color:white}.secondary{background:#e8eef2}.danger{background:#d9534f;color:white;padding:5px 10px}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.hint{margin-top:8px;font-size:12px;color:#666}
-
-/* Particulars – no borders */
-table{width:100%;border-collapse:collapse}
-th,td{border:0;padding:6px;font-size:13px;text-align:left}
-th{background:#08a8d8;color:#fff}
-#items td input{padding:6px;border:1px solid #e3e8ec;background:#fafcfd}
-#items td.num{width:30px;color:#666}
-#items input[type=number]{text-align:right}
-#items td:nth-child(2){width:35%}
-.r{text-align:right}
-
-/* Bill preview */
-.bill{background:#fff;width:210mm;min-height:297mm;margin:15px auto;padding:12mm;box-shadow:0 2px 10px #0002}
-.billhead{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #08a8d8;padding-bottom:8px}
-.firm h2{margin:0 0 3px;font-size:22px}.firm div{font-size:12px;line-height:1.4}
-.logo{max-height:60px;max-width:180px;object-fit:contain}
-.billtitle{text-align:center;color:#08a8d8;font-size:22px;font-weight:bold;margin:10px 0}
-.billinfo{display:flex;justify-content:space-between;font-size:12px;margin:10px 0 14px;line-height:1.5}
-.billtable th,.billtable td{padding:7px 6px}
-.billtable tbody td{border:0}
-.billtable th:nth-child(2),.billtable td:nth-child(2){width:40%}
-.billtable th.r,.billtable td.r{white-space:nowrap}
-.bottom{display:flex;justify-content:space-between;margin-top:18px;gap:20px}
-.bank{font-size:12px;flex:1;line-height:1.5}.bank p{margin:2px 0 10px}
-.rightcol{flex:0 0 45%;max-width:300px}
-.totalbox{width:100%;font-size:13px}
-.totalbox span{text-align:right}
-.totalbox div{display:flex;justify-content:space-between;padding:5px 6px}
-.grand{background:#08a8d8;color:#fff;font-weight:bold;font-size:15px}
-.sign{margin:25px auto 0;text-align:center;width:220px;font-size:12px}
-.sign img{max-height:50px;max-width:180px;object-fit:contain;display:block;margin:8px auto}
-.sign .space{height:50px}
+:root{--blue:#08a8d8;--blue-d:#0687ae;--ink:#1d2b36;--muted:#6a7884;--line:#d6dee5;--bg:#eef3f6;--card:#fff;--red:#d64541}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:15px}
+button{font:inherit;cursor:pointer;border:0;border-radius:8px}
+input,select,textarea{font:inherit;width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+input:disabled,select:disabled{background:#f1f4f6;color:#9aa5ae}
+textarea{resize:vertical}
+label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:12px}
+label input,label select,label textarea{margin-top:5px;font-weight:400}
 .hidden{display:none!important}
 
-@media screen and (max-width:800px){.grid{grid-template-columns:1fr 1fr}.bill{width:100%;min-height:auto;padding:15px}}
+/* App shell */
+.appbar{position:sticky;top:0;z-index:5;background:var(--blue);color:#fff;padding:12px 16px 0}
+.appbar-top{display:flex;justify-content:space-between;align-items:center;max-width:720px;margin:auto}
+.appbar h1{font-size:18px;margin:0}
+.appbar .link{background:rgba(255,255,255,.18);color:#fff;padding:7px 12px;font-size:13px;font-weight:600}
+.steps{display:flex;max-width:720px;margin:12px auto 0}
+.steps button{flex:1;background:none;color:rgba(255,255,255,.65);padding:8px 2px 10px;border-radius:0;border-bottom:3px solid transparent;font-size:13px;font-weight:600}
+.steps button span{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1.5px solid currentColor;font-size:11px;margin-right:5px}
+.steps button.done{color:#fff}
+.steps button.active{color:#fff;border-bottom-color:#fff}
 
-/* Page setup: single A4 page, margins handled by @page */
+main{max-width:720px;margin:auto;padding:16px 14px 110px}
+.screen h2{font-size:20px;margin:4px 0 4px}
+.screen .lead{color:var(--muted);margin:0 0 16px;font-size:14px}
+.card{background:var(--card);border-radius:12px;padding:16px;margin-bottom:14px;border:1px solid var(--line)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.row3{display:grid;grid-template-columns:1.2fr .8fr .9fr;gap:0 10px}
+.btn{padding:11px 16px;font-weight:700}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:active{background:var(--blue-d)}
+.btn-light{background:#e3eaef;color:var(--ink)}
+.btn-danger{background:none;color:var(--red);padding:6px 8px;font-weight:600}
+.btn-wide{width:100%}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn-row .btn{flex:1}
+
+/* Firm picker */
+.firm{display:flex;align-items:center;gap:12px;padding:14px;border:2px solid var(--line);border-radius:12px;background:#fff;margin-bottom:10px;cursor:pointer}
+.firm.sel{border-color:var(--blue);background:#f0fafd}
+.firm .dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);flex:0 0 20px}
+.firm.sel .dot{border:6px solid var(--blue)}
+.firm .info{flex:1;min-width:0}
+.firm .info b{display:block}
+.firm .info small{color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.firm img{width:40px;height:40px;object-fit:contain}
+.firm .edit{background:none;color:var(--blue);font-weight:700;padding:6px}
+.imgpick{display:flex;align-items:center;gap:10px}
+.imgpick img{height:40px;max-width:110px;object-fit:contain;border:1px solid var(--line);border-radius:6px;background:#fff}
+
+/* Items */
+.item{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 14px 4px;margin-bottom:12px}
+.item-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.item-head b{font-size:14px}
+.calc{font-size:13px;color:var(--muted);background:#f4f8fa;border-radius:8px;padding:8px 10px;margin:-4px 0 12px}
+.sum{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0}
+.sum.big{font-size:20px;font-weight:800;color:var(--blue-d);border-top:1px solid var(--line);margin-top:6px;padding-top:10px}
+.note{font-size:13px;color:var(--muted);margin:0 0 12px}
+.disclaimer{background:#fff8e1;border:1px solid #f0d58a;color:#6b5100;border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:16px}
+
+/* Saved bills */
+.billrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.billrow:last-child{border-bottom:0}
+.billrow div{min-width:0}
+.billrow small{color:var(--muted);display:block}
+.empty{color:var(--muted);text-align:center;padding:24px 8px}
+
+/* Bottom nav */
+.navbar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom));z-index:5}
+.navbar .inner{max-width:720px;margin:auto;display:flex;gap:10px}
+.navbar .btn{flex:1;padding:13px}
+.toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;z-index:9;max-width:90%;text-align:center}
+
+/* Preview */
+.preview{overflow:hidden;border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.12);margin-bottom:16px;background:#fff}
+
+/* ===== Bill (printed) ===== */
+.bill{background:#fff;width:210mm;min-height:297mm;padding:12mm;color:#222;font-family:Arial,sans-serif;font-size:13px}
+.billhead{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #08a8d8;padding-bottom:8px}
+.bfirm h3{margin:0 0 3px;font-size:22px}.bfirm div{font-size:12px;line-height:1.4}
+.blogo{max-height:60px;max-width:180px;object-fit:contain}
+.btitle{text-align:center;color:#08a8d8;font-size:22px;font-weight:bold;margin:10px 0}
+.binfo{display:flex;justify-content:space-between;font-size:12px;margin:10px 0 14px;line-height:1.5}
+.btable{width:100%;border-collapse:collapse}
+.btable th,.btable td{padding:7px 6px;font-size:13px;text-align:left;border:0}
+.btable th{background:#08a8d8;color:#fff}
+.btable th:nth-child(2),.btable td:nth-child(2){width:40%}
+.btable .r{text-align:right;white-space:nowrap}
+.bbottom{display:flex;justify-content:space-between;margin-top:18px;gap:20px}
+.bbank{font-size:12px;flex:1;line-height:1.5}.bbank p{margin:2px 0 10px}
+.bright{flex:0 0 45%;max-width:300px}
+.btotal div{display:flex;justify-content:space-between;padding:5px 6px;font-size:13px}
+.btotal .bgrand{background:#08a8d8;color:#fff;font-weight:bold;font-size:15px}
+.bsign{margin:25px auto 0;text-align:center;width:220px;font-size:12px}
+.bsign img{max-height:50px;max-width:180px;object-fit:contain;display:block;margin:8px auto}
+.bsign .space{height:50px}
+
+@media(max-width:420px){.steps button{font-size:12px}.steps button span{margin-right:3px}}
 @page{size:A4 portrait;margin:12mm}
 @media print{
  body{background:#fff}
- .no-print{display:none!important}
- .bill{width:auto;min-height:0;margin:0;padding:0;box-shadow:none}
+ .appbar,.navbar,.toast,.no-print,.screen:not(#s4){display:none!important}
+ main{padding:0;max-width:none}
+ #s4{display:block!important}
+ .preview{box-shadow:none;overflow:visible;border-radius:0;margin:0}
+ .bill{width:auto;min-height:0;padding:0;zoom:1!important}
  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
- .billtable tr{page-break-inside:avoid}
- .bottom{page-break-inside:avoid;flex-direction:row!important}
+ .btable tr{page-break-inside:avoid}
+ .bbottom{page-break-inside:avoid;flex-direction:row!important}
 }
 </style>
 </head>
 <body>
-<div class="app no-print">
-<div class="top"><h1>Offline Bill Generator</h1><div class="sub">Create and print bills without internet or a database.</div></div>
 
-<div class="panel">
-<h3>Old Bills</h3>
-<div class="grid">
-<div class="field wide"><label>Saved Bills</label><select id="oldBills"></select></div>
-<div class="field wide"><label>&nbsp;</label><div style="display:flex;gap:8px;flex-wrap:wrap">
-<button class="primary" onclick="openBill()">Open / Edit</button>
-<button class="danger" style="padding:9px 14px" onclick="deleteBill()">Delete</button>
-<button class="secondary" onclick="backupBills()">Backup File</button>
-<button class="secondary" onclick="$('restoreFile').click()">Restore File</button>
-<input type="file" id="restoreFile" accept=".json" class="hidden">
+<header class="appbar">
+ <div class="appbar-top"><h1>Bill Generator</h1><button class="link" onclick="openBills()">Saved bills</button></div>
+ <nav class="steps" id="steps">
+  <button onclick="go(1)"><span>1</span>Firm</button>
+  <button onclick="go(2)"><span>2</span>Buyer</button>
+  <button onclick="go(3)"><span>3</span>Items</button>
+  <button onclick="go(4)"><span>4</span>Preview</button>
+ </nav>
+</header>
+
+<main>
+<!-- STEP 1: FIRM -->
+<section class="screen" id="s1">
+ <div class="disclaimer no-print" role="note"><b>Note:</b> This app is for training and educational purposes only.</div>
+ <div id="firmPick">
+  <h2>Select a firm</h2>
+  <p class="lead">The bill will be issued in this firm's name.</p>
+  <div id="firmList"></div>
+  <button class="btn btn-light btn-wide" onclick="editFirm(null)">+ Add a new firm</button>
+ </div>
+
+ <div id="firmForm" class="hidden">
+  <h2 id="firmFormTitle">Add your firm</h2>
+  <p class="lead">Saved on this device only. You only need to do this once.</p>
+  <div class="card">
+   <label>Firm name<input id="f_name" placeholder="e.g. S B Traders"></label>
+   <label>Address<input id="f_address"></label>
+   <div class="row">
+    <label>Phone<input id="f_phone" inputmode="tel"></label>
+    <label>Email<input id="f_email" inputmode="email"></label>
+   </div>
+   <div class="row">
+    <label>GSTIN<input id="f_gstin" style="text-transform:uppercase"></label>
+    <label>State<input id="f_state" value="09-Uttar Pradesh"></label>
+   </div>
+  </div>
+  <div class="card">
+   <label>Bank name &amp; branch<input id="f_bank"></label>
+   <div class="row">
+    <label>Account no.<input id="f_account" inputmode="numeric"></label>
+    <label>IFSC<input id="f_ifsc" style="text-transform:uppercase"></label>
+   </div>
+   <label>Account holder's name<input id="f_holder"></label>
+   <label>Default terms<textarea id="f_terms" rows="2">Thank you for doing business with us.</textarea></label>
+  </div>
+  <div class="card">
+   <label>Logo</label>
+   <div class="imgpick" style="margin-bottom:14px"><img id="f_logoPrev" class="hidden" alt=""><input type="file" id="f_logo" accept="image/*"><button class="btn-danger hidden" id="f_logoDel" onclick="clearImg('logo')">Remove</button></div>
+   <label>Signature</label>
+   <div class="imgpick"><img id="f_sigPrev" class="hidden" alt=""><input type="file" id="f_sig" accept="image/*"><button class="btn-danger hidden" id="f_sigDel" onclick="clearImg('sig')">Remove</button></div>
+  </div>
+  <div class="btn-row">
+   <button class="btn btn-light" id="firmCancel" onclick="showFirmPick()">Cancel</button>
+   <button class="btn btn-primary" onclick="saveFirm()">Save firm</button>
+  </div>
+  <button class="btn btn-danger btn-wide hidden" id="firmDelete" style="margin-top:14px" onclick="deleteFirm()">Delete this firm</button>
+ </div>
+</section>
+
+<!-- STEP 2: BUYER -->
+<section class="screen hidden" id="s2">
+ <h2>Buyer &amp; invoice</h2>
+ <p class="lead" id="firmTag"></p>
+ <div class="card">
+  <label>Buyer name<input id="customer" list="pastBuyers" placeholder="e.g. P.S. Tadiyakhan" autocomplete="off"></label>
+  <datalist id="pastBuyers"></datalist>
+  <label>Buyer address<input id="customerAddress" placeholder="e.g. Block- Sathiaon, Azamgarh"></label>
+ </div>
+ <div class="card">
+  <div class="row">
+   <label>Invoice no.<input id="invoice" inputmode="numeric"></label>
+   <label>Date<input id="date" type="date"></label>
+  </div>
+  <div class="row">
+   <label>Bill type<select id="billType"><option>Bill of Supply</option><option>Tax Invoice</option></select></label>
+   <label>GST type<select id="taxType"><option value="same">CGST + SGST</option><option value="igst">IGST</option><option value="none">No GST</option></select></label>
+  </div>
+  <p class="note">Bill of Supply has no GST. Choose Tax Invoice to charge GST.</p>
+ </div>
+</section>
+
+<!-- STEP 3: ITEMS -->
+<section class="screen hidden" id="s3">
+ <h2>Items</h2>
+ <p class="lead">Enter the final amount of each item, including GST. The taxable value and GST are worked out for you.</p>
+ <div id="itemList"></div>
+ <datalist id="gstRates"><option value="0"><option value="5"><option value="12"><option value="18"><option value="28"></datalist>
+ <button class="btn btn-light btn-wide" onclick="addItem()" style="margin-bottom:14px">+ Add another item</button>
+ <div class="card">
+  <div class="sum" id="sumSubRow"><span>Taxable value</span><span id="sumSub"></span></div>
+  <div class="sum" id="sumTaxRow"><span>GST</span><span id="sumTax"></span></div>
+  <div class="sum big"><span>Total</span><span id="sumTotal"></span></div>
+ </div>
+ <div class="card">
+  <label>Amount received<input id="received" type="number" inputmode="decimal" step="0.01" value="0"></label>
+  <label style="margin-bottom:4px">Terms &amp; conditions<textarea id="terms" rows="2"></textarea></label>
+ </div>
+</section>
+
+<!-- STEP 4: PREVIEW -->
+<section class="screen hidden" id="s4">
+ <div class="no-print">
+  <h2>Preview</h2>
+  <p class="lead">Check the bill, then print it or save it as PDF. Set paper size to A4.</p>
+ </div>
+ <div class="preview" id="previewWrap">
+  <div class="bill" id="bill">
+   <div class="billhead">
+    <div class="bfirm"><h3 id="pFirm"></h3><div id="pAddress"></div><div id="pContact"></div><div id="pGST"></div><div id="pState"></div></div>
+    <img id="pLogo" class="blogo hidden" alt="">
+   </div>
+   <div class="btitle" id="pType"></div>
+   <div class="binfo">
+    <div><b>Bill To</b><br><span id="pCustomer"></span><br><span id="pCustomerAddress"></span></div>
+    <div style="text-align:right"><b>Invoice Details</b><br>Invoice No.: <span id="pInvoice"></span><br>Date: <span id="pDate"></span></div>
+   </div>
+   <table class="btable"><thead id="pHead"></thead><tbody id="pItems"></tbody></table>
+   <div class="bbottom">
+    <div class="bbank">
+     <b>Invoice Amount In Words</b><p id="pWords"></p>
+     <b>Terms And Conditions</b><p id="pTerms"></p>
+     <b>Pay To:</b><br>
+     Bank Name: <span id="pBank"></span><br>
+     Bank Account No.: <span id="pAccount"></span><br>
+     Bank IFSC Code: <span id="pIFSC"></span><br>
+     Account Holder's Name: <span id="pHolder"></span>
+    </div>
+    <div class="bright">
+     <div class="btotal">
+      <div id="pSubRow">Sub Total <span id="pSub"></span></div>
+      <div id="pCgstRow">CGST <span id="pCgst"></span></div>
+      <div id="pSgstRow">SGST <span id="pSgst"></span></div>
+      <div id="pIgstRow">IGST <span id="pIgst"></span></div>
+      <div class="bgrand">Total <span id="pTotal"></span></div>
+      <div>Received <span id="pReceived"></span></div>
+      <div>Balance <span id="pBalance"></span></div>
+     </div>
+     <div class="bsign"><b>For: <span id="pFirm2"></span></b><img id="pSig" class="hidden" alt=""><div id="pSigSpace" class="space"></div><b>Authorized Signatory</b></div>
+    </div>
+   </div>
+  </div>
+ </div>
+ <div class="no-print">
+  <button class="btn btn-primary btn-wide" style="padding:14px;margin-bottom:10px" onclick="printBill()">Print / Save PDF</button>
+  <div class="btn-row">
+   <button class="btn btn-light" onclick="saveBill(false)">Save bill</button>
+   <button class="btn btn-light" onclick="newBill()">Start a new bill</button>
+  </div>
+ </div>
+</section>
+
+<!-- SAVED BILLS -->
+<section class="screen hidden" id="sBills">
+ <h2>Saved bills</h2>
+ <p class="lead">Bills are saved on this device when you print or tap Save bill.</p>
+ <div class="card" id="billsList"></div>
+ <div class="btn-row">
+  <button class="btn btn-light" onclick="backupBills()">Download backup</button>
+  <button class="btn btn-light" onclick="$('restoreFile').click()">Restore backup</button>
+ </div>
+ <input type="file" id="restoreFile" accept=".json,application/json" class="hidden">
+</section>
+</main>
+
+<div class="navbar" id="navbar"><div class="inner">
+ <button class="btn btn-light" id="backBtn" onclick="back()">Back</button>
+ <button class="btn btn-primary" id="nextBtn" onclick="next()">Next</button>
 </div></div>
-</div>
-<div class="hint">Every bill is saved automatically when you click Print. Use Backup File to keep a copy or move bills to another computer.</div>
-</div>
-
-<div class="panel">
-<h3>Firm Details</h3>
-<div class="grid">
-<div class="field wide"><label>Firm Name</label><input id="firm" value="" placeholder="Firm Name"></div>
-<div class="field"><label>GSTIN</label><input id="gstin" value="" placeholder="GSTIN"></div>
-<div class="field"><label>State</label><input id="state" value="09-Uttar Pradesh"></div>
-<div class="field wide"><label>Address</label><input id="address" value="" placeholder="Firm Address"></div>
-<div class="field"><label>Phone</label><input id="phone" value="" placeholder="Phone"></div>
-<div class="field"><label>Email</label><input id="email" value="" placeholder="Email"></div>
-<div class="field"><label>Bank Name</label><input id="bank" value="" placeholder="Bank Name & Branch"></div>
-<div class="field"><label>Account No.</label><input id="account" value="" placeholder="Account No."></div>
-<div class="field"><label>IFSC</label><input id="ifsc" value="" placeholder="IFSC Code"></div>
-<div class="field"><label>Account Holder</label><input id="holder" value="" placeholder="Account Holder"></div>
-<div class="field"><label>Logo</label><input type="file" id="logo" accept="image/*"></div>
-<div class="field"><label>Signature</label><input type="file" id="signature" accept="image/*"></div>
-</div>
-<div class="actions"><button class="secondary" onclick="saveSettings()">Save Firm Settings</button><button class="secondary" onclick="loadSettings(true)">Load Saved Settings</button></div>
-</div>
-
-<div class="panel">
-<h3>Invoice Details</h3>
-<div class="grid">
-<div class="field"><label>Bill Type</label><select id="billType"><option>Bill of Supply</option><option>Tax Invoice</option></select></div>
-<div class="field"><label>Invoice No.</label><input id="invoice" value="" placeholder="Invoice No."></div>
-<div class="field"><label>Date</label><input id="date" type="date"></div>
-<div class="field"><label>Tax Type</label><select id="taxType"><option value="same">CGST + SGST</option><option value="igst">IGST</option><option value="none">No GST</option></select></div>
-<div class="field wide"><label>Bill To / Customer Name</label><input id="customer" value="" placeholder="Customer Name"></div>
-<div class="field wide"><label>Customer Address</label><input id="customerAddress" value="" placeholder="Customer Address"></div>
-</div>
-</div>
-
-<div class="panel">
-<h3>Particulars <span style="font-size:12px;color:#666;font-weight:normal">— enter the final amount INCLUDING GST</span></h3>
-<table id="items">
-<thead><tr><th>#</th><th>Item Name</th><th>HSN/SAC</th><th>Qty</th><th>Unit</th><th>Amount (Incl. GST)</th><th>GST %</th><th class="gstcol r">Pre-GST</th><th class="gstcol r">GST</th><th></th></tr></thead>
-<tbody></tbody>
-</table>
-<div class="actions"><button class="primary" onclick="addItem()">+ Add Particular</button></div>
-<datalist id="gstRates"><option value="0"><option value="5"><option value="12"><option value="18"><option value="28"></datalist>
-<div class="hint">Example: ₹5,900 at 18% → taxable ₹5,000 + GST ₹900. Entering a GST % switches the bill to Tax Invoice automatically (Bill of Supply has no GST).</div>
-</div>
-
-<div class="panel">
-<div class="grid">
-<div class="field"><label>Received</label><input id="received" type="number" value="0" step="0.01"></div>
-<div class="field wide"><label>Terms &amp; Conditions</label><textarea id="terms" rows="2">Thank you for doing business with us.</textarea></div>
-</div>
-</div>
-
-<div class="actions">
-<button class="primary" onclick="saveBill(true);window.print()">Print / Save PDF</button>
-<button class="secondary" onclick="saveBill()">Save Bill</button>
-<button class="secondary" onclick="newBill()">New Bill</button>
-</div>
-</div>
-
-<div class="bill" id="bill">
-<div class="billhead">
-<div class="firm"><h2 id="pFirm"></h2><div id="pAddress"></div><div id="pContact"></div><div id="pGST"></div><div id="pState"></div></div>
-<img id="pLogo" class="logo hidden" alt="">
-</div>
-<div class="billtitle" id="pType"></div>
-<div class="billinfo">
-<div><b>Bill To</b><br><span id="pCustomer"></span><br><span id="pCustomerAddress"></span></div>
-<div style="text-align:right"><b>Invoice Details</b><br>Invoice No.: <span id="pInvoice"></span><br>Date: <span id="pDate"></span></div>
-</div>
-<table class="billtable">
-<thead id="pHead"></thead>
-<tbody id="pItems"></tbody>
-</table>
-<div class="bottom">
-<div class="bank">
-<b>Invoice Amount In Words</b><p id="words"></p>
-<b>Terms And Conditions</b><p id="pTerms"></p>
-<b>Pay To:</b><br>
-Bank Name: <span id="pBank"></span><br>
-Bank Account No.: <span id="pAccount"></span><br>
-Bank IFSC Code: <span id="pIFSC"></span><br>
-Account Holder's Name: <span id="pHolder"></span>
-</div>
-<div class="rightcol">
-<div class="totalbox">
-<div id="subRow">Sub Total <span id="subTotal"></span></div>
-<div id="cgstRow">CGST <span id="cgst"></span></div>
-<div id="sgstRow">SGST <span id="sgst"></span></div>
-<div id="igstRow">IGST <span id="igst"></span></div>
-<div class="grand">Total <span id="total"></span></div>
-<div>Received <span id="pReceived"></span></div>
-<div>Balance <span id="balance"></span></div>
-</div>
-<div class="sign"><b>For: <span id="pFirm2"></span></b><img id="pSignature" class="hidden" alt=""><div id="sigSpace" class="space"></div><b>Authorized Signatory</b></div>
-</div>
-</div>
-</div>
+<div class="toast hidden" id="toast"></div>
 
 <script>
 const $=id=>document.getElementById(id);
-let logoData='',sigData='';
-
-const r2=n=>Math.round((n+Number.EPSILON)*100)/100;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const r2=n=>Math.round((n+Number.EPSILON)*100)/100;
 const money=n=>'₹ '+Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 function today(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)}
+const dmy=d=>d?d.split('-').reverse().join('-'):'';
+const LS={
+ get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
+ set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){alert('Could not save: storage is full. Download a backup, then delete some old bills or use smaller logo/signature images.');return false}}
+};
+let tT;function toast(m){const t=$('toast');t.textContent=m;t.classList.remove('hidden');clearTimeout(tT);tT=setTimeout(()=>t.classList.add('hidden'),2600)}
+const fromOld=o=>({id:uid(),name:o.firm,gstin:o.gstin||'',state:o.state||'',address:o.address||'',phone:o.phone||'',email:o.email||'',bank:o.bank||'',account:o.account||'',ifsc:o.ifsc||'',holder:o.holder||'',terms:o.terms||'',logo:o.logo||'',sig:o.sig||''});
 
-/* Effective tax type: Bill of Supply never charges GST */
-function taxMode(){return $('billType').value==='Bill of Supply'?'none':$('taxType').value}
+/* ---------- Data ---------- */
+let firms=LS.get('billFirms',[]);
+if(!firms.length){ // bring over the firm saved by the older one-page version
+ const o=LS.get('billSettings',null);
+ if(o&&o.firm){firms=[fromOld(o)];LS.set('billFirms',firms)}
+}
+const bills=()=>LS.get('billHistory',[]);
+let step=1,editingId=null,tmpLogo='',tmpSig='';
+let cur=blankBill(LS.get('lastFirm',null));
 
-function addItem(d={}){
- d={name:'',hsn:'',qty:1,unit:'',gross:0,gst:0,...d};
- const tr=document.createElement('tr');
- tr.innerHTML=`<td class="num"></td><td><input value="${esc(d.name)}"></td><td><input value="${esc(d.hsn)}" style="width:90px"></td><td><input type="number" value="${d.qty}" step="0.01" style="width:70px"></td><td><input value="${esc(d.unit)}" style="width:70px"></td><td><input type="number" value="${d.gross}" step="0.01"></td><td><input class="gstrate" type="number" value="${d.gst}" step="0.01" min="0" style="width:70px" list="gstRates"></td><td class="gstcol r pre">0.00</td><td class="gstcol r tax">0.00</td><td><button class="danger" onclick="this.closest('tr').remove();updateBill()">×</button></td>`;
- $('items').querySelector('tbody').appendChild(tr);updateBill();
+function blankBill(firmId){
+ if(!firms.find(f=>f.id===firmId))firmId=firms[0]?firms[0].id:null;
+ const f=firms.find(x=>x.id===firmId);
+ return {firmId,billType:'Bill of Supply',taxType:'same',invoice:nextInvoice(firmId),date:today(),customer:'',customerAddress:'',received:0,terms:f?f.terms||'':'',items:[newItem()]};
+}
+function newItem(){return {name:'',hsn:'',qty:1,unit:'',gross:'',gst:0}}
+function firm(){return firms.find(f=>f.id===cur.firmId)}
+function nextInvoice(fid){
+ const nums=bills().filter(b=>!b.firmId||b.firmId===fid).map(b=>parseInt(b.invoice,10)).filter(n=>!isNaN(n));
+ return nums.length?String(Math.max(...nums)+1):'1';
 }
 
-function rows(){
- const mode=taxMode();
- return [...$('items').querySelectorAll('tbody tr')].map((tr,i)=>{
-  const x=tr.querySelectorAll('input');
-  const qty=+x[2].value||0,gross=r2(+x[4].value||0),gst=mode==='none'?0:(+x[5].value||0);
-  const taxable=gst?r2(gross/(1+gst/100)):gross;
-  const tax=r2(gross-taxable);
-  const cg=mode==='same'?r2(tax/2):0, sg=mode==='same'?r2(tax-cg):0, ig=mode==='igst'?tax:0;
-  return {i,name:x[0].value,hsn:x[1].value,qty,unit:x[3].value,gross,gst,taxable,tax,cg,sg,ig};
- });
+/* ---------- Navigation ---------- */
+const NEXT={1:'Next: buyer',2:'Next: items',3:'Preview bill'};
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('hidden',s.id!==id));window.scrollTo(0,0)}
+function go(n){
+ if(step===2)readBuyer();
+ if(n>step&&!validate(step,n))return;
+ step=n;show('s'+n);
+ $('backBtn').onclick=back;
+ document.querySelectorAll('#steps button').forEach((b,i)=>{b.classList.toggle('active',i+1===n);b.classList.toggle('done',i+1<n)});
+ $('navbar').classList.remove('hidden');
+ $('backBtn').classList.toggle('hidden',n===1);
+ $('nextBtn').classList.toggle('hidden',n===4);
+ $('nextBtn').textContent=NEXT[n]||'';
+ if(n===1)showFirmPick();
+ if(n===2)fillBuyer();
+ if(n===3)renderItems();
+ if(n===4){renderBill();fitPreview()}
+}
+function next(){go(step+1)}
+function back(){go(step-1)}
+function validate(from,to){
+ for(let s=from;s<to;s++){
+  if(s===1&&!firm()){toast('Add or select a firm first.');return false}
+  if(s===2){
+   if(!cur.customer.trim()){toast('Enter the buyer name.');go(2);$('customer').focus();return false}
+   if(!String(cur.invoice).trim()){toast('Enter the invoice number.');go(2);$('invoice').focus();return false}
+  }
+  if(s===3&&!cur.items.some(i=>+i.gross>0)){toast('Enter the amount for at least one item.');if(step!==3)go(3);return false}
+ }
+ return true;
 }
 
-function updateBill(){
- const mode=taxMode(), withTax=mode!=='none';
- $('taxType').disabled=$('billType').value==='Bill of Supply';
- document.querySelectorAll('.gstcol').forEach(e=>e.classList.toggle('hidden',!withTax));
-
- const r=rows();
- const sub=r2(r.reduce((a,x)=>a+x.taxable,0)),cg=r2(r.reduce((a,x)=>a+x.cg,0)),
-       sg=r2(r.reduce((a,x)=>a+x.sg,0)),ig=r2(r.reduce((a,x)=>a+x.ig,0)),
-       total=r2(r.reduce((a,x)=>a+x.gross,0)),rec=r2(+$('received').value||0);
-
- $('pFirm').textContent=$('pFirm2').textContent=$('firm').value;
- $('pAddress').textContent=$('address').value;
- $('pContact').textContent='Phone no.: '+$('phone').value+' | Email: '+$('email').value;
- $('pGST').textContent='GSTIN: '+$('gstin').value;$('pState').textContent='State: '+$('state').value;
- $('pType').textContent=$('billType').value;
- $('pCustomer').textContent=$('customer').value;$('pCustomerAddress').textContent=$('customerAddress').value;
- $('pInvoice').textContent=$('invoice').value;
- $('pDate').textContent=$('date').value?$('date').value.split('-').reverse().join('-'):'';
- $('pTerms').textContent=$('terms').value;
- $('pBank').textContent=$('bank').value;$('pAccount').textContent=$('account').value;
- $('pIFSC').textContent=$('ifsc').value;$('pHolder').textContent=$('holder').value;
-
- $('pHead').innerHTML=withTax
-  ?'<tr><th>#</th><th>Item Name</th><th>HSN/SAC</th><th class="r">Qty</th><th>Unit</th><th class="r">Taxable Value</th><th class="r">GST %</th><th class="r">GST</th><th class="r">Amount</th></tr>'
-  :'<tr><th>#</th><th>Item Name</th><th>HSN/SAC</th><th class="r">Qty</th><th>Unit</th><th class="r">Amount</th></tr>';
- $('pItems').innerHTML=r.map(x=>withTax
-  ?`<tr><td>${x.i+1}</td><td>${esc(x.name)}</td><td>${esc(x.hsn)}</td><td class="r">${x.qty}</td><td>${esc(x.unit)}</td><td class="r">${money(x.taxable)}</td><td class="r">${x.gst}%</td><td class="r">${money(x.tax)}</td><td class="r">${money(x.gross)}</td></tr>`
-  :`<tr><td>${x.i+1}</td><td>${esc(x.name)}</td><td>${esc(x.hsn)}</td><td class="r">${x.qty}</td><td>${esc(x.unit)}</td><td class="r">${money(x.gross)}</td></tr>`).join('');
-
- $('subTotal').textContent=money(sub);$('cgst').textContent=money(cg);$('sgst').textContent=money(sg);$('igst').textContent=money(ig);
- $('total').textContent=money(total);$('pReceived').textContent=money(rec);$('balance').textContent=money(r2(total-rec));
- $('subRow').classList.toggle('hidden',!withTax);
- $('cgstRow').classList.toggle('hidden',mode!=='same');$('sgstRow').classList.toggle('hidden',mode!=='same');
- $('igstRow').classList.toggle('hidden',mode!=='igst');
- $('words').textContent=amountWords(total);
-
- [...$('items').querySelectorAll('tbody tr')].forEach((tr,i)=>{
-  tr.querySelector('.num').textContent=i+1;
-  tr.querySelector('.pre').textContent=money(r[i].taxable);
-  tr.querySelector('.tax').textContent=money(r[i].tax);
- });
+/* ---------- Step 1: firm ---------- */
+function showFirmPick(){
+ if(!firms.length){editFirm(null);return}
+ $('firmForm').classList.add('hidden');$('firmPick').classList.remove('hidden');$('navbar').classList.remove('hidden');
+ $('firmList').innerHTML=firms.map(f=>`<div class="firm${f.id===cur.firmId?' sel':''}" onclick="pickFirm('${f.id}')">
+  <div class="dot"></div>${f.logo?`<img src="${f.logo}" alt="">`:''}
+  <div class="info"><b>${esc(f.name)}</b><small>${esc(f.address||f.gstin||'')}</small></div>
+  <button class="edit" onclick="event.stopPropagation();editFirm('${f.id}')">Edit</button></div>`).join('');
+}
+function pickFirm(id){
+ if(cur.firmId!==id){cur.firmId=id;cur.invoice=nextInvoice(id);cur.terms=firm().terms||cur.terms}
+ LS.set('lastFirm',id);showFirmPick();
+}
+const FF=['name','address','phone','email','gstin','state','bank','account','ifsc','holder','terms'];
+function editFirm(id){
+ editingId=id;const f=firms.find(x=>x.id===id)||{state:'09-Uttar Pradesh',terms:'Thank you for doing business with us.'};
+ FF.forEach(k=>$('f_'+k).value=f[k]||'');
+ tmpLogo=f.logo||'';tmpSig=f.sig||'';$('f_logo').value='';$('f_sig').value='';showImgs();
+ $('firmFormTitle').textContent=id?'Edit firm':(firms.length?'Add a new firm':'Add your firm');
+ $('firmCancel').classList.toggle('hidden',!firms.length);
+ $('firmDelete').classList.toggle('hidden',!id);
+ $('firmPick').classList.add('hidden');$('firmForm').classList.remove('hidden');$('navbar').classList.add('hidden');
+ window.scrollTo(0,0);
+}
+function showImgs(){
+ [['logo',tmpLogo],['sig',tmpSig]].forEach(([k,v])=>{const p=$('f_'+k+'Prev');p.classList.toggle('hidden',!v);if(v)p.src=v;$('f_'+k+'Del').classList.toggle('hidden',!v)});
+}
+function clearImg(k){if(k==='logo')tmpLogo='';else tmpSig='';$('f_'+k).value='';showImgs()}
+function readImg(input,cb){
+ const f=input.files[0];if(!f)return;const fr=new FileReader();
+ fr.onload=e=>{const img=new Image();img.onload=()=>{ // shrink large photos so they fit in storage
+  const sc=Math.min(1,500/Math.max(img.width,img.height)),c=document.createElement('canvas');
+  c.width=Math.round(img.width*sc);c.height=Math.round(img.height*sc);c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+  cb(c.toDataURL('image/png'));showImgs()};img.src=e.target.result};
+ fr.readAsDataURL(f);
+}
+$('f_logo').onchange=()=>readImg($('f_logo'),d=>tmpLogo=d);
+$('f_sig').onchange=()=>readImg($('f_sig'),d=>tmpSig=d);
+function saveFirm(){
+ const f={};FF.forEach(k=>f[k]=$('f_'+k).value.trim());
+ if(!f.name){toast('Enter the firm name.');$('f_name').focus();return}
+ f.gstin=f.gstin.toUpperCase();f.ifsc=f.ifsc.toUpperCase();f.logo=tmpLogo;f.sig=tmpSig;
+ const copy=firms.slice();
+ if(editingId){const i=copy.findIndex(x=>x.id===editingId);copy[i]={...copy[i],...f}}
+ else{f.id=uid();copy.push(f)}
+ if(!LS.set('billFirms',copy))return;
+ firms=copy;
+ if(!editingId){cur.firmId=f.id;cur.invoice=nextInvoice(f.id);cur.terms=f.terms}
+ else if(cur.firmId===editingId)cur.terms=f.terms||cur.terms;
+ LS.set('lastFirm',cur.firmId);toast('Firm saved.');showFirmPick();
+}
+function deleteFirm(){
+ const f=firms.find(x=>x.id===editingId);if(!f||!confirm('Delete the firm "'+f.name+'"? Its saved bills are kept.'))return;
+ firms=firms.filter(x=>x.id!==editingId);LS.set('billFirms',firms);
+ if(cur.firmId===editingId)cur.firmId=firms[0]?firms[0].id:null;
+ showFirmPick();
 }
 
-/* Indian number system: Crore / Lakh / Thousand, with paise */
+/* ---------- Step 2: buyer ---------- */
+const BF=['customer','customerAddress','invoice','date','billType','taxType'];
+function fillBuyer(){
+ BF.forEach(k=>$(k).value=cur[k]);
+ $('firmTag').textContent='From: '+(firm()?firm().name:'');
+ $('taxType').disabled=cur.billType==='Bill of Supply';
+ const seen=new Set();
+ $('pastBuyers').innerHTML=bills().filter(b=>b.customer&&!seen.has(b.customer)&&seen.add(b.customer)).map(b=>`<option value="${esc(b.customer)}">`).join('');
+}
+function readBuyer(){BF.forEach(k=>cur[k]=$(k).value)}
+$('billType').onchange=()=>{readBuyer();$('taxType').disabled=cur.billType==='Bill of Supply';if(cur.billType==='Tax Invoice'&&cur.taxType==='none'){cur.taxType='same';$('taxType').value='same'}};
+$('taxType').onchange=readBuyer;
+$('customer').onchange=()=>{ // fill in the address of a previous buyer
+ const b=bills().find(x=>x.customer===$('customer').value);
+ if(b&&!$('customerAddress').value)$('customerAddress').value=b.customerAddress||'';
+};
+
+/* ---------- Step 3: items ---------- */
+function taxMode(){return cur.billType==='Bill of Supply'?'none':cur.taxType}
+function calcItem(it){
+ const mode=taxMode(),gross=r2(+it.gross||0),gst=mode==='none'?0:(+it.gst||0);
+ const taxable=gst?r2(gross/(1+gst/100)):gross,tax=r2(gross-taxable);
+ const cg=mode==='same'?r2(tax/2):0,sg=mode==='same'?r2(tax-cg):0,ig=mode==='igst'?tax:0;
+ return {...it,qty:+it.qty||0,gross,gst,taxable,tax,cg,sg,ig};
+}
+function totals(){
+ const r=cur.items.map(calcItem),s=k=>r2(r.reduce((a,x)=>a+x[k],0));
+ const total=s('gross'),rec=r2(+cur.received||0);
+ return {rows:r,sub:s('taxable'),tax:s('tax'),cg:s('cg'),sg:s('sg'),ig:s('ig'),total,rec,bal:r2(total-rec)};
+}
+function renderItems(){
+ $('itemList').innerHTML=cur.items.map((it,i)=>`<div class="item">
+  <div class="item-head"><b>Item ${i+1}</b>${cur.items.length>1?`<button class="btn-danger" onclick="removeItem(${i})">Remove</button>`:''}</div>
+  <label>Item name<input data-i="${i}" data-k="name" value="${esc(it.name)}" placeholder="e.g. Eco Club Kit"></label>
+  <div class="row3">
+   <label>HSN/SAC<input data-i="${i}" data-k="hsn" value="${esc(it.hsn)}"></label>
+   <label>Qty<input data-i="${i}" data-k="qty" type="number" inputmode="decimal" step="0.01" value="${esc(it.qty)}"></label>
+   <label>Unit<input data-i="${i}" data-k="unit" value="${esc(it.unit)}" placeholder="Bag, Nos"></label>
+  </div>
+  <div class="row">
+   <label>Amount incl. GST (₹)<input data-i="${i}" data-k="gross" type="number" inputmode="decimal" step="0.01" value="${esc(it.gross)}"></label>
+   <label>GST %<input data-i="${i}" data-k="gst" type="number" inputmode="decimal" step="0.01" min="0" list="gstRates" value="${esc(it.gst)}"></label>
+  </div>
+  <div class="calc" id="calc${i}"></div>
+ </div>`).join('');
+ $('received').value=cur.received;$('terms').value=cur.terms;
+ updateSums();
+}
+function updateSums(){
+ const t=totals(),withTax=taxMode()!=='none';
+ t.rows.forEach((x,i)=>{const c=$('calc'+i);if(c){c.classList.toggle('hidden',!withTax);c.textContent='Taxable '+money(x.taxable)+'  +  GST '+money(x.tax)}});
+ $('sumSubRow').classList.toggle('hidden',!withTax);$('sumTaxRow').classList.toggle('hidden',!withTax);
+ $('sumSub').textContent=money(t.sub);$('sumTax').textContent=money(t.tax);$('sumTotal').textContent=money(t.total);
+}
+$('itemList').addEventListener('input',e=>{
+ const el=e.target,i=el.dataset.i,k=el.dataset.k;if(i===undefined)return;
+ cur.items[i][k]=el.value;
+ if(k==='gst'&&+el.value>0&&cur.billType==='Bill of Supply'){
+  cur.billType='Tax Invoice';if(cur.taxType==='none')cur.taxType='same';
+  toast('Switched to Tax Invoice because GST was entered.');
+ }
+ updateSums();
+});
+function addItem(){cur.items.push(newItem());renderItems();const n=document.querySelectorAll('#itemList .item');n[n.length-1].querySelector('input').focus()}
+function removeItem(i){cur.items.splice(i,1);renderItems()}
+$('received').oninput=()=>cur.received=$('received').value;
+$('terms').oninput=()=>cur.terms=$('terms').value;
+
+/* ---------- Step 4: bill ---------- */
 function numberWords(n){
  const o=['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'],
        t=['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
  const two=x=>x<20?o[x]:t[Math.floor(x/10)]+(x%10?' '+o[x%10]:'');
  const three=x=>(x>=100?o[Math.floor(x/100)]+' Hundred'+(x%100?' ':''):'')+two(x%100);
  if(n===0)return'Zero';
- let s=[];
- const cr=Math.floor(n/1e7);n%=1e7;const lk=Math.floor(n/1e5);n%=1e5;const th=Math.floor(n/1e3);n%=1e3;
+ const s=[],cr=Math.floor(n/1e7);n%=1e7;const lk=Math.floor(n/1e5);n%=1e5;const th=Math.floor(n/1e3);n%=1e3;
  if(cr)s.push(numberWords(cr)+' Crore');if(lk)s.push(two(lk)+' Lakh');if(th)s.push(two(th)+' Thousand');if(n)s.push(three(n));
  return s.join(' ');
 }
-function amountWords(a){
- const rs=Math.floor(a),ps=Math.round((a-rs)*100);
- return 'Rupees '+numberWords(rs)+(ps?' and '+numberWords(ps)+' Paise':'')+' Only';
-}
+function amountWords(a){const rs=Math.floor(a),ps=Math.round((a-rs)*100);return 'Rupees '+numberWords(rs)+(ps?' and '+numberWords(ps)+' Paise':'')+' Only'}
 
-function fileImage(input,target){const f=input.files[0];if(!f)return;const fr=new FileReader();fr.onload=e=>{if(target==='logo')logoData=e.target.result;else sigData=e.target.result;updateImages()};fr.readAsDataURL(f)}
-function updateImages(){
- $('pLogo').classList.toggle('hidden',!logoData);if(logoData)$('pLogo').src=logoData;
- $('pSignature').classList.toggle('hidden',!sigData);$('sigSpace').classList.toggle('hidden',!!sigData);if(sigData)$('pSignature').src=sigData;
+function renderBill(){
+ const f=firm()||{},t=totals(),mode=taxMode(),withTax=mode!=='none',set=(id,v)=>$(id).textContent=v;
+ set('pFirm',f.name||'');set('pFirm2',f.name||'');set('pAddress',f.address||'');
+ set('pContact','Phone no.: '+(f.phone||'')+' | Email: '+(f.email||''));
+ set('pGST','GSTIN: '+(f.gstin||''));set('pState','State: '+(f.state||''));
+ $('pLogo').classList.toggle('hidden',!f.logo);if(f.logo)$('pLogo').src=f.logo;
+ $('pSig').classList.toggle('hidden',!f.sig);$('pSigSpace').classList.toggle('hidden',!!f.sig);if(f.sig)$('pSig').src=f.sig;
+ set('pBank',f.bank||'');set('pAccount',f.account||'');set('pIFSC',f.ifsc||'');set('pHolder',f.holder||'');
+ set('pType',cur.billType);set('pCustomer',cur.customer);set('pCustomerAddress',cur.customerAddress);
+ set('pInvoice',cur.invoice);set('pDate',dmy(cur.date));set('pTerms',cur.terms);
+ $('pHead').innerHTML=withTax
+  ?'<tr><th>#</th><th>Item Name</th><th>HSN/SAC</th><th class="r">Qty</th><th>Unit</th><th class="r">Taxable Value</th><th class="r">GST %</th><th class="r">GST</th><th class="r">Amount</th></tr>'
+  :'<tr><th>#</th><th>Item Name</th><th>HSN/SAC</th><th class="r">Qty</th><th>Unit</th><th class="r">Amount</th></tr>';
+ $('pItems').innerHTML=t.rows.filter(x=>x.name||x.gross).map((x,i)=>withTax
+  ?`<tr><td>${i+1}</td><td>${esc(x.name)}</td><td>${esc(x.hsn)}</td><td class="r">${x.qty}</td><td>${esc(x.unit)}</td><td class="r">${money(x.taxable)}</td><td class="r">${x.gst}%</td><td class="r">${money(x.tax)}</td><td class="r">${money(x.gross)}</td></tr>`
+  :`<tr><td>${i+1}</td><td>${esc(x.name)}</td><td>${esc(x.hsn)}</td><td class="r">${x.qty}</td><td>${esc(x.unit)}</td><td class="r">${money(x.gross)}</td></tr>`).join('');
+ set('pSub',money(t.sub));set('pCgst',money(t.cg));set('pSgst',money(t.sg));set('pIgst',money(t.ig));
+ set('pTotal',money(t.total));set('pReceived',money(t.rec));set('pBalance',money(t.bal));
+ $('pSubRow').classList.toggle('hidden',!withTax);
+ $('pCgstRow').classList.toggle('hidden',mode!=='same');$('pSgstRow').classList.toggle('hidden',mode!=='same');
+ $('pIgstRow').classList.toggle('hidden',mode!=='igst');
+ set('pWords',amountWords(t.total));
 }
-$('logo').onchange=()=>fileImage($('logo'),'logo');$('signature').onchange=()=>fileImage($('signature'),'signature');
+function fitPreview(){const b=$('bill');b.style.zoom=1;b.style.zoom=Math.min(1,$('previewWrap').clientWidth/b.offsetWidth)}
+window.addEventListener('resize',()=>{if(step===4&&!$('s4').classList.contains('hidden'))fitPreview()});
 
-const SET=['firm','gstin','state','address','phone','email','bank','account','ifsc','holder','terms'];
-function saveSettings(){
- const o={};SET.forEach(i=>o[i]=$(i).value);o.logo=logoData;o.sig=sigData;
- try{localStorage.billSettings=JSON.stringify(o);alert('Firm settings saved on this device.')}
- catch(e){alert('Could not save — logo/signature image may be too large. Try a smaller image.')}
-}
-function loadSettings(show){
- try{const o=JSON.parse(localStorage.billSettings||'null');
-  if(!o){if(show)alert('No saved settings found.');return}
-  SET.forEach(i=>{if(o[i]!==undefined)$(i).value=o[i]});logoData=o.logo||'';sigData=o.sig||'';updateImages();updateBill();
- }catch(e){}
-}
-function newBill(){
- const n=$('invoice').value;$('invoice').value=/^\d+$/.test(n)?String(+n+1):'';
- ['customer','customerAddress'].forEach(i=>$(i).value='');$('received').value=0;
- $('items').querySelector('tbody').innerHTML='';$('date').value=today();addItem();
-}
-
-/* ---------- Old bills (saved on this device) ---------- */
-const BILL_FIELDS=['billType','invoice','date','taxType','customer','customerAddress','received','terms'];
-function getHistory(){try{return JSON.parse(localStorage.billHistory||'[]')}catch(e){return[]}}
-function putHistory(h){try{localStorage.billHistory=JSON.stringify(h);return true}catch(e){alert('Could not save bill — storage is full. Take a Backup File and delete some old bills.');return false}}
-function currentBill(){
- const b={};BILL_FIELDS.forEach(i=>b[i]=$(i).value);
- b.items=[...$('items').querySelectorAll('tbody tr')].map(tr=>{const x=tr.querySelectorAll('input');
-  return {name:x[0].value,hsn:x[1].value,qty:+x[2].value||0,unit:x[3].value,gross:+x[4].value||0,gst:+x[5].value||0}});
- b.total=r2(b.items.reduce((a,x)=>a+x.gross,0));b.saved=new Date().toISOString();
- return b;
-}
+/* ---------- Saving ---------- */
 function saveBill(silent){
- const b=currentBill();
- if(!b.invoice){if(!silent)alert('Enter an Invoice No. first.');return}
- const h=getHistory().filter(x=>!(x.invoice===b.invoice&&x.date.slice(0,4)===b.date.slice(0,4)));
+ const t=totals();
+ const b={...cur,items:cur.items.filter(x=>x.name||+x.gross),total:t.total,firmName:firm()?firm().name:'',saved:new Date().toISOString()};
+ const h=bills().filter(x=>!(x.invoice===b.invoice&&(x.firmId||b.firmId)===b.firmId&&(x.date||'').slice(0,4)===b.date.slice(0,4)));
  h.unshift(b);
- if(putHistory(h)){renderBills(b.invoice);if(!silent)alert('Bill '+b.invoice+' saved.')}
+ if(LS.set('billHistory',h)&&!silent)toast('Bill '+b.invoice+' saved.');
 }
-function renderBills(sel){
- const h=getHistory();
- $('oldBills').innerHTML=h.length
-  ?h.map((b,i)=>`<option value="${i}"${b.invoice===sel?' selected':''}>No. ${esc(b.invoice)} — ${esc(b.customer)} — ${b.date.split('-').reverse().join('-')} — ${money(b.total)}</option>`).join('')
-  :'<option value="">No saved bills yet</option>';
+function printBill(){saveBill(true);window.print()}
+function newBill(){cur=blankBill(cur.firmId);step=2;go(2);toast('New bill started: invoice no. '+cur.invoice)}
+
+/* ---------- Saved bills screen ---------- */
+function openBills(){
+ if(step===2)readBuyer();
+ show('sBills');$('navbar').classList.remove('hidden');
+ $('backBtn').classList.remove('hidden');$('nextBtn').classList.add('hidden');
+ document.querySelectorAll('#steps button').forEach(b=>b.classList.remove('active'));
+ $('backBtn').onclick=()=>go(step);
+ const h=bills();
+ $('billsList').innerHTML=h.length?h.map((b,i)=>`<div class="billrow"><div><b>No. ${esc(b.invoice)}, ${esc(b.customer)}</b>
+  <small>${dmy(b.date)}${b.firmName?', '+esc(b.firmName):''}, ${money(b.total)}</small></div>
+  <div style="display:flex;gap:4px;flex:0 0 auto"><button class="btn btn-light" style="padding:8px 12px" onclick="openBill(${i})">Open</button>
+  <button class="btn-danger" onclick="deleteBill(${i})">Delete</button></div></div>`).join('')
+  :'<div class="empty">No saved bills yet. Bills appear here after you print or save them.</div>';
 }
-function loadBill(b){
- BILL_FIELDS.forEach(i=>{if(b[i]!==undefined)$(i).value=b[i]});
- $('items').querySelector('tbody').innerHTML='';
- (b.items&&b.items.length?b.items:[{}]).forEach(it=>addItem(it));
- updateBill();window.scrollTo({top:0,behavior:'smooth'});
+function openBill(i){
+ const b=bills()[i];if(!b)return;
+ cur={...blankBill(b.firmId||cur.firmId),...b,items:(b.items&&b.items.length?b.items:[newItem()]).map(x=>({...x}))};
+ if(!firms.find(f=>f.id===cur.firmId))cur.firmId=firms[0]?firms[0].id:null;
+ step=4;go(4);
 }
-function openBill(){const b=getHistory()[$('oldBills').value];if(b)loadBill(b)}
-function deleteBill(){
- const h=getHistory(),i=$('oldBills').value,b=h[i];if(!b)return;
- if(!confirm('Delete bill No. '+b.invoice+' ('+b.customer+')?'))return;
- h.splice(i,1);putHistory(h);renderBills();
+function deleteBill(i){
+ const h=bills(),b=h[i];if(!b||!confirm('Delete bill No. '+b.invoice+' ('+b.customer+')?'))return;
+ h.splice(i,1);LS.set('billHistory',h);openBills();
 }
 function backupBills(){
- const data=JSON.stringify({bills:getHistory(),settings:JSON.parse(localStorage.billSettings||'null')},null,1);
+ const data=JSON.stringify({bills:bills(),firms},null,1);
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));
- a.download='Bills_Backup_'+today()+'.json';a.click();URL.revokeObjectURL(a.href);
+ a.download='Bills_Backup_'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 $('restoreFile').onchange=e=>{
  const f=e.target.files[0];if(!f)return;const fr=new FileReader();
  fr.onload=()=>{try{
-  const d=JSON.parse(fr.result),incoming=d.bills||[];
-  const h=getHistory(),key=b=>b.invoice+'|'+b.date.slice(0,4);
-  const seen=new Set(h.map(key));let added=0;
-  incoming.forEach(b=>{if(!seen.has(key(b))){h.push(b);seen.add(key(b));added++}});
-  h.sort((a,b)=>(b.date+b.invoice).localeCompare(a.date+a.invoice,undefined,{numeric:true}));
-  if(putHistory(h)){renderBills();alert(added+' bill(s) restored.')}
-  if(d.settings&&!localStorage.billSettings){localStorage.billSettings=JSON.stringify(d.settings);loadSettings(false)}
- }catch(err){alert('This is not a valid backup file.')}e.target.value=''};
+  const d=JSON.parse(fr.result);
+  (d.firms||[]).forEach(x=>{if(!firms.find(y=>y.id===x.id))firms.push(x)});
+  if(d.settings&&d.settings.firm&&!firms.some(y=>y.name===d.settings.firm))firms.push(fromOld(d.settings));
+  LS.set('billFirms',firms);if(!firm()&&firms[0])cur.firmId=firms[0].id;
+  const h=bills(),key=b=>(b.firmId||'')+'|'+b.invoice+'|'+(b.date||'').slice(0,4),seen=new Set(h.map(key));let n=0;
+  (d.bills||[]).forEach(b=>{if(!seen.has(key(b))){h.push(b);seen.add(key(b));n++}});
+  h.sort((a,b)=>((b.date||'')+b.invoice).localeCompare((a.date||'')+a.invoice,undefined,{numeric:true}));
+  if(LS.set('billHistory',h)){toast(n+' bill(s) restored.');openBills()}
+ }catch(err){toast('That file is not a valid backup.')}e.target.value=''};
  fr.readAsText(f);
 };
 
-$('date').value=today();
-renderBills();
-loadSettings(false);
-addItem();
-document.addEventListener('input',e=>{
- if(e.target.classList.contains('gstrate')&&+e.target.value>0&&taxMode()==='none'){
-  $('billType').value='Tax Invoice';if($('taxType').value==='none')$('taxType').value='same';
- }
- updateBill();
-});
-document.addEventListener('change',updateBill);
+/* ---------- Start ---------- */
+go(1);
 </script>
-</body></html>
+</body>
+</html>
