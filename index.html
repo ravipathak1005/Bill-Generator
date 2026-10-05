@@ -41,16 +41,17 @@ th{background:#08a8d8;color:#fff}
 .billtable th.r,.billtable td.r{white-space:nowrap}
 .bottom{display:flex;justify-content:space-between;margin-top:18px;gap:20px}
 .bank{font-size:12px;flex:1;line-height:1.5}.bank p{margin:2px 0 10px}
-.totalbox{width:300px;max-width:100%;font-size:13px;margin-left:auto}
+.rightcol{flex:0 0 45%;max-width:300px}
+.totalbox{width:100%;font-size:13px}
 .totalbox span{text-align:right}
 .totalbox div{display:flex;justify-content:space-between;padding:5px 6px}
 .grand{background:#08a8d8;color:#fff;font-weight:bold;font-size:15px}
-.sign{margin-left:auto;margin-top:30px;text-align:center;width:220px;font-size:12px}
+.sign{margin:25px auto 0;text-align:center;width:220px;font-size:12px}
 .sign img{max-height:50px;max-width:180px;object-fit:contain;display:block;margin:8px auto}
 .sign .space{height:50px}
 .hidden{display:none!important}
 
-@media(max-width:800px){.grid{grid-template-columns:1fr 1fr}.bill{width:100%;min-height:auto;padding:15px}.bottom{flex-direction:column}}
+@media screen and (max-width:800px){.grid{grid-template-columns:1fr 1fr}.bill{width:100%;min-height:auto;padding:15px}}
 
 /* Page setup: single A4 page, margins handled by @page */
 @page{size:A4 portrait;margin:12mm}
@@ -60,7 +61,7 @@ th{background:#08a8d8;color:#fff}
  .bill{width:auto;min-height:0;margin:0;padding:0;box-shadow:none}
  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
  .billtable tr{page-break-inside:avoid}
- .bottom,.sign{page-break-inside:avoid}
+ .bottom{page-break-inside:avoid;flex-direction:row!important}
 }
 </style>
 </head>
@@ -163,6 +164,7 @@ Bank Account No.: <span id="pAccount"></span><br>
 Bank IFSC Code: <span id="pIFSC"></span><br>
 Account Holder's Name: <span id="pHolder"></span>
 </div>
+<div class="rightcol">
 <div class="totalbox">
 <div id="subRow">Sub Total <span id="subTotal"></span></div>
 <div id="cgstRow">CGST <span id="cgst"></span></div>
@@ -172,8 +174,9 @@ Account Holder's Name: <span id="pHolder"></span>
 <div>Received <span id="pReceived"></span></div>
 <div>Balance <span id="balance"></span></div>
 </div>
-</div>
 <div class="sign"><b>For: <span id="pFirm2"></span></b><img id="pSignature" class="hidden" alt=""><div id="sigSpace" class="space"></div><b>Authorized Signatory</b></div>
+</div>
+</div>
 </div>
 
 <script>
